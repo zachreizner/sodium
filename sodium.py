@@ -10,6 +10,7 @@ crypto_box_MACBYTES = lib.crypto_box_macbytes()
 crypto_sign_PUBLICKEYBYTES = lib.crypto_sign_publickeybytes()
 crypto_sign_SECRETKEYBYTES = lib.crypto_sign_secretkeybytes()
 crypto_sign_BYTES = lib.crypto_sign_bytes()
+crypto_pwhash_SALTBYTES = lib.crypto_pwhash_scryptsalsa208sha256_saltbytes()
 
 def random_bytes(bytes_len):
     buf = ffi.new('uint8_t[]', bytes_len)
@@ -109,6 +110,16 @@ def crypto_sign_open(sm, pk):
 
   return bytes(buf[0:mlen[0]])
 
+def crypto_pwhash(outlen, passwd, salt, opslimit, memlimit):
+    if len(salt) != crypto_pwhash_SALTBYTES:
+        raise Exception('Salt is {} bytes, expected {} bytes'.format(len(salt), crypto_pwhash_SALTBYTES))
+
+    buf = ffi.new('unsigned char[]', outlen)
+    ret = lib.crypto_pwhash_scryptsalsa208sha256(buf, len(buf), passwd, len(passwd), salt, opslimit, memlimit)
+    if ret != 0:
+        raise Exception('Failed to hash password')
+
+    return bytes(buf)
 
 if __name__ == '__main__':
     nonce = random_bytes(24)
@@ -130,3 +141,8 @@ if __name__ == '__main__':
     print(sm)
     m = crypto_sign_open(sm, pk)
     print(m)
+
+    salt = random_bytes(crypto_pwhash_SALTBYTES)
+    pwhash = crypto_pwhash(32, b'staple', salt, 1000000, 1 << 30)
+    print(pwhash)
+    print(pwhash == crypto_pwhash(32, b'staple', salt, 1000000, 1 << 30))

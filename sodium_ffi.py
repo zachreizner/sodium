@@ -43,6 +43,15 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
     const unsigned char *sm, unsigned long long smlen,
     const unsigned char *pk);
 
+size_t crypto_pwhash_scryptsalsa208sha256_saltbytes();
+int crypto_pwhash_scryptsalsa208sha256(unsigned char * const out,
+   unsigned long long outlen,
+   const char * const passwd,
+   unsigned long long passwdlen,
+   const unsigned char * const salt,
+   unsigned long long opslimit,
+   size_t memlimit);
+
 """)
 
 if __name__ == "__main__":
